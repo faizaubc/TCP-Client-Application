@@ -37,10 +37,18 @@ int main()
 	//endpoint for sending and receiving data across the network is socket 
 	SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
 	//check if socket is valid
-
+	if (sock == INVALID_SOCKET)
+	{
+		cerr << "Can't create socket, Err # " << WSAGetLastError() << endl;
+	}
 	
 	//Fill in a hint structure
-
+	//hint structure will tell the 
+	//will tell win sock what server and what port to connect to
+	sockaddr_in hint;
+	hint.sin_family = AF_INET;
+	hint.sin_port = htons(port); //htons host to network short makes it portable
+	inet_pton(AF_INET, ipAddress.c_str(), &hint.sin_addr);//
 	//Connect to server
 
 	//Do -while loop to send and receive data
