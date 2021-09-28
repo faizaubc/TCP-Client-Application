@@ -4,11 +4,12 @@
 #include "pch.h"
 #include <iostream>
 #include <WS2tcpip.h>
+#include <string>
 #pragma comment(lib, "ws2_32.lib")
 
 using namespace std;
 
-int main()
+void main()
 {
     std::cout << "Hello World!\n"; 
 	//IP Address of the server
@@ -48,12 +49,50 @@ int main()
 	sockaddr_in hint;
 	hint.sin_family = AF_INET;
 	hint.sin_port = htons(port); //htons host to network short makes it portable
-	inet_pton(AF_INET, ipAddress.c_str(), &hint.sin_addr);//
+	inet_pton(AF_INET, ipAddress.c_str(), &hint.sin_addr);//&hint.sin_addr convert the address
+
 	//Connect to server
+	int connResult = connect(sock, (sockaddr*)&hint, sizeof(hint));
+	if (connResult == SOCKET_ERROR)
+	{
+		cerr << "Can't connect to the server, Err #" << WSAGetLastError() << endl;
+		closesocket(sock);
+		WSACleanup();
+		return;
+	}
 
 	//Do -while loop to send and receive data
+	char buf[4096];
+	string userInput;
+
+	do
+	{
+		//prompt the user for some text
+		cout << "> ";
+		getline(cin, userInput);
+		if (userInput.size() > 0) //Make sure the user has typed in something
+		{
+			//send the text
+			int sendResult = send(sock, userInput.c_str(), userInput.size() + 1, 0);
+			if (sendResult != SOCKET_ERROR)
+			{
+				//wait for response
+				ZeroMemory(buf, 4096);
+				int bytesRecieved = recv(sock, buf, 4096, 0);
+				if (bytesRecieved > 0)
+				{
+					cout << "SERVER> " << string(buf, 0, bytesRecieved) << endl;
+				}
+			}			
+		}
+
+	} while (userInput.size() > 0);
 
 	//gracefully close down everything 
+
+	closesocket(sock);
+
+	WSACleanup();
 
 
 
